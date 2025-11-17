@@ -1,7 +1,7 @@
-package com.iprody;
+package com.radmiy;
 
-import com.iprody.handler.RequestHandler;
-import com.iprody.handler.ResponseHandler;
+import com.radmiy.handler.RequestHandler;
+import com.radmiy.handler.ResponseHandler;
 
 import java.io.*;
 import java.net.ServerSocket;
