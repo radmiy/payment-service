@@ -1,4 +1,4 @@
-package com.iprody.handler;
+package com.radmiy.handler;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.iprody.handler.ResponseHandler.STATUS.*;
+import static com.radmiy.handler.ResponseHandler.STATUS.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ResponseHandler {
