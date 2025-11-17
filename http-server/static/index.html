@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Простой HTTP-Сервер</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+    <h1>Сервер Работает! (200 OK)</h1>
+</header>
+<main>
+    <p>Если вы видите это, ваш HTTP-сервер успешно обработал GET-запрос для `index.html` и `style.css`.</p>
+    <div class="message">
+        <p>Текущее время и дата: <span id="time"></span></p>
+    </div>
+    <p>
+        Этот текст должен быть стилизован с помощью <span class="highlight">style.css</span>.
+    </p>
+</main>
+<footer>
+    <p>&copy; 2025 Mодуль HTTP-server</p>
+</footer>
+
+<script>
+    document.getElementById('time').innerText = new Date().toLocaleString();
+</script>
+</body>
+</html>
