@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfiguration {
 
     @Bean
-    public Repository getPaymentRepository() {
+    public Repository paymentRepository() {
         return new PaymentRepository();
     }
 
     @Bean
-    public Service getPaymentService() {
-        return new PaymentService(getPaymentRepository());
+    public Service paymentService(Repository paymentRepository) {
+        return new PaymentService(paymentRepository);
     }
 }
