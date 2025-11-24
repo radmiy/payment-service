@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PaymentModel {
 
-    private long paymentId;
-    private double value;
+    private Long paymentId;
+    private Double value;
     private String name;
 }
