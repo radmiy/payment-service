@@ -1,5 +1,6 @@
 package com.radmiy.payment.service.app.service.impl;
 
+import com.radmiy.payment.service.app.exception.PaymentNotFoundException;
 import com.radmiy.payment.service.app.model.PaymentModel;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -18,11 +20,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto getPayment(long id) {
-        PaymentModel model = paymentRepository.getPayment(id);
-        if (model == null) {
-            return null;
+        Optional<PaymentModel> payment = Optional.ofNullable(paymentRepository.getPayment(id));
+        if (payment.isEmpty()) {
+            throw new PaymentNotFoundException("Payment not found");
         }
-        return convertToDto(model);
+        return convertToDto(payment);
     }
 
     @Override
@@ -31,40 +33,61 @@ public class PaymentServiceImpl implements PaymentService {
 
         return models.stream()
                 .filter(Objects::nonNull)
+                .map(Optional::of)
                 .map(PaymentServiceImpl::convertToDto)
                 .toList();
     }
 
     @Override
     public PaymentDto addPayment(PaymentDto paymentDto) {
-        PaymentModel payment = convertToModel(paymentDto);
-        return convertToDto(paymentRepository.addPayment(payment));
+        if (paymentDto == null) {
+            throw new IllegalArgumentException("Payment is not valid");
+        }
+
+        Optional<PaymentModel> paymentModel =
+                Optional.ofNullable(
+                        paymentRepository.addPayment(convertToModel(Optional.of(paymentDto)))
+                );
+        return convertToDto(paymentModel);
     }
 
     @Override
     public boolean removePayment(long id) {
-        return paymentRepository.removePayment(id);
-    }
-
-    private static PaymentDto convertToDto(PaymentModel payment) {
-        if (payment == null) {
-            return null;
+        boolean removePayment = paymentRepository.removePayment(id);
+        if (!removePayment) {
+            throw new PaymentNotFoundException("Payment not found");
         }
 
+        return removePayment;
+    }
+
+    private static PaymentDto convertToDto(Optional<PaymentModel> payment) {
+        if (payment.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        PaymentModel paymentModel = payment.get();
+
         PaymentDto dto = PaymentDto.builder()
-                .value(payment.getValue())
-                .name(payment.getName())
+                .value(paymentModel.getValue())
+                .name(paymentModel.getName())
                 .build();
-        if (payment.getPaymentId() != null) {
-            dto.setPaymentId(payment.getPaymentId());
+        if (paymentModel.getPaymentId() != null) {
+            dto.setPaymentId(paymentModel.getPaymentId());
         }
         return dto;
     }
 
-    private static PaymentModel convertToModel(PaymentDto dto) {
+    private static PaymentModel convertToModel(Optional<PaymentDto> dto) {
+        if (dto.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        PaymentDto paymentDto = dto.get();
+
         return PaymentModel.builder()
-                .value(dto.getValue())
-                .name(dto.getName())
+                .value(paymentDto.getValue())
+                .name(paymentDto.getName())
                 .build();
     }
 }

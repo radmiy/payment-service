@@ -40,12 +40,13 @@ class PaymentServiceTest {
     void getPayment() {
         // given
         Long paymentId = 1L;
+        when(paymentRepository.getPayment(anyLong())).thenReturn(map.get(paymentId));
 
         // when
-        when(paymentRepository.getPayment(anyLong())).thenReturn(map.get(paymentId));
         PaymentDto payment = paymentService.getPayment(paymentId);
 
         // then
+        assertNotNull(payment);
         assertEquals("First record", payment.getName());
         assertEquals(paymentId, payment.getPaymentId());
         assertEquals(1_000, payment.getValue());
@@ -68,18 +69,19 @@ class PaymentServiceTest {
     @Test
     void createPayment() {
         // given
-        PaymentDto newPayment = PaymentDto.builder()
-                .value(1_000.0)
-                .name("Other record")
-                .build();
         PaymentModel expectedPayment = PaymentModel.builder()
                 .paymentId(1_000L)
                 .value(1_000.0)
                 .name("Other record")
                 .build();
+        when(paymentRepository.addPayment(any())).thenReturn(expectedPayment);
+
+        PaymentDto newPayment = PaymentDto.builder()
+                .value(1_000.0)
+                .name("Other record")
+                .build();
 
         // when
-        when(paymentRepository.addPayment(any())).thenReturn(expectedPayment);
         PaymentDto result = paymentService.addPayment(newPayment);
 
         // then
@@ -90,13 +92,14 @@ class PaymentServiceTest {
     @Test
     void deletePayment() {
         // given
-        paymentService.removePayment(1L);
-
-        // when
         when(paymentRepository.removePayment(anyLong())).thenReturn(true);
 
+        // when
+        Boolean removePayment = paymentService.removePayment(1L);
+
         // then
-        assertTrue(paymentService.removePayment(1L));
+        assertNotNull(removePayment);
+        assertTrue(removePayment);
     }
 
     private void initPayments() {

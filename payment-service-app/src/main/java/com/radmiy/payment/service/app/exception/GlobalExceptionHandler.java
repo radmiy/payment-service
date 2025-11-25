@@ -1,32 +1,53 @@
 package com.radmiy.payment.service.app.exception;
 
-import org.springframework.http.HttpStatus;
+import com.radmiy.payment.service.app.response.ErrorResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles domain-specific "not found" errors.
+     */
     @ExceptionHandler(PaymentNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, Object> handleNotFound(PaymentNotFoundException ex) {
-        return Map.of(
-                "status", 404,
-                "error", "Not Found",
-                "message", ex.getMessage()
+    public ResponseEntity<ErrorResponse> handleNotFound(PaymentNotFoundException ex) {
+        ErrorResponse body = new ErrorResponse(
+                NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage()
         );
+        return ResponseEntity.status(NOT_FOUND).body(body);
     }
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, Object> handleInternal(Exception ex) {
-        return Map.of(
-                "status", 500,
-                "error", "Internal Server Error",
-                "message", ex.getMessage()
+    /**
+     * Handles validation and client-side errors.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
+        ErrorResponse body = new ErrorResponse(
+                BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage()
         );
+        return ResponseEntity.status(BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Fallback for any other exceptions.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleOther(Exception ex) {
+        ErrorResponse body = new ErrorResponse(
+                INTERNAL_SERVER_ERROR.value(),
+                "Internal Error",
+                ex.getMessage()
+        );
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(body);
     }
 }
