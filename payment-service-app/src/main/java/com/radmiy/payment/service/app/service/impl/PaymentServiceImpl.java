@@ -20,7 +20,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto getPayment(long id) {
-        Optional<PaymentModel> payment = Optional.ofNullable(paymentRepository.getPayment(id));
+        final Optional<PaymentModel> payment = Optional.ofNullable(paymentRepository.getPayment(id));
         if (payment.isEmpty()) {
             throw new PaymentNotFoundException("Payment not found");
         }
@@ -29,7 +29,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentDto> getPayments() {
-        List<PaymentModel> models = paymentRepository.getPayments();
+        final List<PaymentModel> models = paymentRepository.getPayments();
 
         return models.stream()
                 .filter(Objects::nonNull)
@@ -44,7 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("Payment is not valid");
         }
 
-        Optional<PaymentModel> paymentModel =
+        final Optional<PaymentModel> paymentModel =
                 Optional.ofNullable(
                         paymentRepository.addPayment(convertToModel(Optional.of(paymentDto)))
                 );
@@ -53,7 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public boolean removePayment(long id) {
-        boolean removePayment = paymentRepository.removePayment(id);
+        final boolean removePayment = paymentRepository.removePayment(id);
         if (!removePayment) {
             throw new PaymentNotFoundException("Payment not found");
         }
@@ -66,9 +66,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException();
         }
 
-        PaymentModel paymentModel = payment.get();
+        final PaymentModel paymentModel = payment.get();
 
-        PaymentDto dto = PaymentDto.builder()
+        final PaymentDto dto = PaymentDto.builder()
                 .value(paymentModel.getValue())
                 .name(paymentModel.getName())
                 .build();
@@ -83,7 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException();
         }
 
-        PaymentDto paymentDto = dto.get();
+        final PaymentDto paymentDto = dto.get();
 
         return PaymentModel.builder()
                 .value(paymentDto.getValue())

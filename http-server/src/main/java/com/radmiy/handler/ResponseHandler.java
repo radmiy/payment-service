@@ -25,22 +25,21 @@ public class ResponseHandler {
 
     public void handle(String requestPath, BufferedWriter outputStream) {
         try {
-            String fileName = requestPath.equals("/") || requestPath.equals("/index.html") ?
-                    "index.html" : requestPath;
+            String fileName = requestPath.equals("/") || requestPath.equals("/index.html") ? "index.html" : requestPath;
 
             if (fileName.startsWith("/")) {
                 fileName = fileName.substring(1);
             }
 
-            Path staticPath = Paths.get(FILES_DIR).toAbsolutePath().normalize();
-            Path filePath = staticPath.resolve(fileName).normalize();
+            final Path staticPath = Paths.get(FILES_DIR).toAbsolutePath().normalize();
+            final Path filePath = staticPath.resolve(fileName).normalize();
 
             if (!filePath.startsWith(staticPath)) {
                 sendError(outputStream, STATUS_403, "Путь не разрешен.");
                 return;
             }
 
-            File file = filePath.toFile();
+            final File file = filePath.toFile();
             if (file.exists() && !file.isDirectory()) {
                 sendFoundFile(outputStream, file);
             } else {
@@ -57,23 +56,22 @@ public class ResponseHandler {
     }
 
     private void sendFoundFile(BufferedWriter writer, File file) throws IOException {
-        String fileContent = Files.readString(file.toPath(), UTF_8);
+        final String fileContent = Files.readString(file.toPath(), UTF_8);
         send(writer, STATUS_200, fileContent, getMimeType(file.getName()));
     }
 
     private void sendError(BufferedWriter writer, STATUS status, String bodyMessage) throws IOException {
-        String htmlBody = "<h1>" + status + "</h1><p>" + bodyMessage + "</p>";
+        final String htmlBody = "<h1>" + status + "</h1><p>" + bodyMessage + "</p>";
         send(writer, status, htmlBody, MIME_TYPES.get("html"));
     }
 
     private void send(BufferedWriter writer, STATUS status, String bodyMessage, String mimeType) throws IOException {
-        long htmlBodyLen = bodyMessage.getBytes(UTF_8).length;
+        final long htmlBodyLen = bodyMessage.getBytes(UTF_8).length;
 
-        String response = "HTTP/1.1 " + status.code + "\r\n" +
-                "Content-Type: " + mimeType + "; charset=UTF-8\r\n" +
-                "Content-Length: " + htmlBodyLen + "\r\n" +
-                "Connection: close\r\n" +
-                "\r\n";
+        final String response = "HTTP/1.1 " + status.code +
+                "\r\n" + "Content-Type: " + mimeType +
+                "; charset=UTF-8\r\nContent-Length: " +
+                htmlBodyLen + "\r\nConnection: close\r\n\r\n";
 
         writer.write(response);
         writer.write(bodyMessage);
@@ -81,9 +79,9 @@ public class ResponseHandler {
     }
 
     private String getMimeType(String fileName) {
-        int dotIndex = fileName.lastIndexOf('.');
+        final int dotIndex = fileName.lastIndexOf('.');
         if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
-            String extension = fileName.substring(dotIndex + 1).toLowerCase();
+            final String extension = fileName.substring(dotIndex + 1).toLowerCase();
             return MIME_TYPES.getOrDefault(extension, MIME_TYPES.get(null));
         }
         return MIME_TYPES.get(null);
