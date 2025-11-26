@@ -20,7 +20,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Compile with Maven
-        run: mvn clean compile
+        run: mvn -B clean compile
 
       - name: Run Tests
-        run: mvn test
+        run: mvn -B test
