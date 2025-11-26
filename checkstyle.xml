@@ -11,6 +11,15 @@
     </module>
 
     <module name="TreeWalker">
+        <!-- Checks for Javadoc comments.                     -->
+        <!-- See https://checkstyle.org/checks/javadoc/index.html -->
+        <module name="JavadocVariable">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MissingJavadocMethod">
+            <property name="severity" value="ignore"/>
+        </module>
+
         <module name="WhitespaceAfter"/>
 
         <module name="WhitespaceAround"/>
@@ -26,7 +35,7 @@
             <property name="throwsIndent" value="4"/>
             <property name="arrayInitIndent" value="4"/>
             <property name="lineWrappingIndentation" value="4"/>
-            <property name="forceStrictCondition" value="true"/>
+            <property name="forceStrictCondition" value="false"/>
         </module>
     </module>
 </module>

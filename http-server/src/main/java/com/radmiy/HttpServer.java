@@ -23,11 +23,11 @@ public class HttpServer {
 
                         while (!in.ready()) ;
                         while (in.ready()) {
-                            RequestHandler requestHandler = new RequestHandler();
+                            final RequestHandler requestHandler = new RequestHandler();
                             requestedFile = requestHandler.handle(in);
 
                             if (requestedFile != null && !requestedFile.isEmpty()) {
-                                ResponseHandler responseHandler = new ResponseHandler();
+                                final ResponseHandler responseHandler = new ResponseHandler();
                                 responseHandler.handle(requestedFile, out);
                             }
                         }
