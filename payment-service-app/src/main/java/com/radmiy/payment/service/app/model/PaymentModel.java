@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@SuppressWarnings("MagicNumber")
 public class PaymentModel {
 
     private Long paymentId;
