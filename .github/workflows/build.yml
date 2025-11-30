@@ -20,7 +20,6 @@ jobs:
           distribution: 'temurin'
 
       - name: Run Checkstyle for payment-service
-        working-directory: ./
         run: mvn -B checkstyle:check
 
       - name: Compile with Maven
