@@ -1,5 +1,6 @@
 package com.radmiy.payment.service.app.controller;
 
+import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.service.PaymentService;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -29,9 +31,15 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentDto> getPayment(@PathVariable Long id) {
+    public ResponseEntity<PaymentDto> getPayment(@PathVariable UUID id) {
         return ResponseEntity.ok()
                 .body(paymentService.getPayment(id));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<PaymentDto>> getPaymentsByStatus(@PathVariable PaymentStatus status) {
+        return ResponseEntity.ok()
+                .body(paymentService.getPaymentsByStatus(status));
     }
 
     @PostMapping
@@ -41,8 +49,8 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deletePayment(@PathVariable Long id) {
-        return ResponseEntity.ok()
-                .body(paymentService.removePayment(id));
+    public ResponseEntity<Boolean> deletePayment(@PathVariable UUID id) {
+        paymentService.removePayment(id);
+        return ResponseEntity.ok().body(true);
     }
 }
