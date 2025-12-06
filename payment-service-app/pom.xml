@@ -30,6 +30,7 @@
         <java.version>21</java.version>
         <checkstyle_version>3.6.0</checkstyle_version>
         <puppycrawl_version>12.1.2</puppycrawl_version>
+        <liquibase_version>4.32.0</liquibase_version>
     </properties>
 
     <dependencies>
@@ -62,6 +63,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -117,6 +123,15 @@
                         <version>${puppycrawl_version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase_version}</version>
+                <configuration>
+
+                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>
