@@ -28,6 +28,8 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <checkstyle_version>3.6.0</checkstyle_version>
+        <puppycrawl_version>12.1.2</puppycrawl_version>
     </properties>
 
     <dependencies>
@@ -45,6 +47,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${checkstyle_version}</version>
         </dependency>
     </dependencies>
 
@@ -78,7 +85,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>${checkstyle_version}</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -88,7 +95,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <configLocation>../checkstyle.xml</configLocation>
+                    <configLocation>checkstyle.xml</configLocation>
                     <inputEncoding>UTF-8</inputEncoding>
                     <outputEncoding>UTF-8</outputEncoding>
                     <consoleOutput>true</consoleOutput>
@@ -98,7 +105,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>12.1.2</version>
+                        <version>${puppycrawl_version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
