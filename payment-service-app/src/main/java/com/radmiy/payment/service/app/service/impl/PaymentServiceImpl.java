@@ -1,7 +1,8 @@
 package com.radmiy.payment.service.app.service.impl;
 
 import com.radmiy.payment.service.app.exception.PaymentNotFoundException;
-import com.radmiy.payment.service.app.model.PaymentModel;
+import com.radmiy.payment.service.app.model.Payment;
+import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
 import com.radmiy.payment.service.app.service.PaymentService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -19,21 +21,24 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public PaymentDto getPayment(long id) {
-        final Optional<PaymentModel> payment = Optional.ofNullable(paymentRepository.getPayment(id));
-        if (payment.isEmpty()) {
-            throw new PaymentNotFoundException("Payment not found");
-        }
-        return convertToDto(payment);
+    public PaymentDto getPayment(UUID id) {
+        return paymentRepository.findById(id)
+                .map(PaymentServiceImpl::convertToDto)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
     }
 
     @Override
     public List<PaymentDto> getPayments() {
-        final List<PaymentModel> models = paymentRepository.getPayments();
-
-        return models.stream()
+        return paymentRepository.findAll().stream()
                 .filter(Objects::nonNull)
-                .map(Optional::of)
+                .map(PaymentServiceImpl::convertToDto)
+                .toList();
+    }
+
+    @Override
+    public List<PaymentDto> getPaymentsByStatus(PaymentStatus status) {
+        return paymentRepository.findByStatus(status).stream()
+                .filter(Objects::nonNull)
                 .map(PaymentServiceImpl::convertToDto)
                 .toList();
     }
@@ -44,50 +49,38 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("Payment is not valid");
         }
 
-        final Optional<PaymentModel> paymentModel =
-                Optional.ofNullable(
-                        paymentRepository.addPayment(convertToModel(Optional.of(paymentDto)))
-                );
+        final Payment paymentModel = paymentRepository.save(convertToModel(paymentDto));
         return convertToDto(paymentModel);
     }
 
     @Override
-    public boolean removePayment(long id) {
-        final boolean removePayment = paymentRepository.removePayment(id);
-        if (!removePayment) {
-            throw new PaymentNotFoundException("Payment not found");
-        }
-
-        return removePayment;
+    public void removePayment(UUID id) {
+        paymentRepository.deleteById(id);
     }
 
-    private static PaymentDto convertToDto(Optional<PaymentModel> payment) {
-        if (payment.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-
-        final PaymentModel paymentModel = payment.get();
-
+    private static PaymentDto convertToDto(Payment payment) {
         final PaymentDto dto = PaymentDto.builder()
-                .value(paymentModel.getValue())
-                .name(paymentModel.getName())
+                .amount(payment.getAmount())
+                .currency(payment.getCurrency())
+                .status(payment.getStatus())
+                .note(payment.getNote())
+                .createdAt(payment.getCreatedAt())
+                .updatedAt(payment.getUpdatedAt())
                 .build();
-        if (paymentModel.getPaymentId() != null) {
-            dto.setPaymentId(paymentModel.getPaymentId());
+        if (payment.getGuid() != null) {
+            dto.setGuid(payment.getGuid());
         }
         return dto;
     }
 
-    private static PaymentModel convertToModel(Optional<PaymentDto> dto) {
-        if (dto.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-
-        final PaymentDto paymentDto = dto.get();
-
-        return PaymentModel.builder()
-                .value(paymentDto.getValue())
-                .name(paymentDto.getName())
+    private static Payment convertToModel(PaymentDto payment) {
+        return Payment.builder()
+                .amount(payment.getAmount())
+                .currency(payment.getCurrency())
+                .status(payment.getStatus())
+                .note(payment.getNote())
+                .createdAt(payment.getCreatedAt())
+                .updatedAt(payment.getUpdatedAt())
                 .build();
     }
 }

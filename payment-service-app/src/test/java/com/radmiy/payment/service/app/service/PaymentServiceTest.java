@@ -1,6 +1,7 @@
 package com.radmiy.payment.service.app.service;
 
-import com.radmiy.payment.service.app.model.PaymentModel;
+import com.radmiy.payment.service.app.model.Payment;
+import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
 import com.radmiy.payment.service.app.service.impl.PaymentServiceImpl;
@@ -11,10 +12,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,7 +28,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
 
-    private final Map<Long, PaymentModel> map = new HashMap<>();
+    private final Map<UUID, Optional<Payment>> map = new HashMap<>();
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -37,25 +43,28 @@ class PaymentServiceTest {
     }
 
     @Test
-    void getPayment() {
+    void getPaymentTest() {
         // given
-        Long paymentId = 1L;
-        when(paymentRepository.getPayment(anyLong())).thenReturn(map.get(paymentId));
+        UUID guid = map.keySet().iterator().next();
+        Payment expected = map.get(guid).get();
+        when(paymentRepository.findById(any())).thenReturn(Optional.of(expected));
 
         // when
-        PaymentDto payment = paymentService.getPayment(paymentId);
+        PaymentDto payment = paymentService.getPayment(guid);
 
         // then
         assertNotNull(payment);
-        assertEquals("First record", payment.getName());
-        assertEquals(paymentId, payment.getPaymentId());
-        assertEquals(1_000, payment.getValue());
+        assertEquals(expected.getGuid(), payment.getGuid());
     }
 
     @Test
-    void getAllPayments() {
+    void getAllPaymentsTest() {
         // given
-        when(paymentRepository.getPayments()).thenReturn(new ArrayList<>(map.values()));
+        List<Payment> expected = map.values().stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+        when(paymentRepository.findAll()).thenReturn(expected);
 
         // when
         List<PaymentDto> payments = paymentService.getPayments();
@@ -67,18 +76,46 @@ class PaymentServiceTest {
     }
 
     @Test
-    void createPayment() {
+    void getPaymentsByStatusTest() {
         // given
-        PaymentModel expectedPayment = PaymentModel.builder()
-                .paymentId(1_000L)
-                .value(1_000.0)
-                .name("Other record")
+        List<Payment> expected = map.values().stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(payment -> payment.getStatus() ==  PaymentStatus.APPROVED)
+                .toList();
+        when(paymentRepository.findAll()).thenReturn(expected);
+
+        // when
+        List<PaymentDto> payments = paymentService.getPayments();
+
+        // then
+        assertNotNull(payments);
+        assertEquals(2, payments.size());
+
+    }
+
+    @Test
+    void createPaymentTest() {
+        // given
+        UUID guid = UUID.randomUUID();
+        Payment expectedPayment = Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(1000))
+                .currency("RUB")
+                .status(PaymentStatus.APPROVED)
+                .note("Test note")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
                 .build();
-        when(paymentRepository.addPayment(any())).thenReturn(expectedPayment);
+        when(paymentRepository.save(any())).thenReturn(expectedPayment);
 
         PaymentDto newPayment = PaymentDto.builder()
-                .value(1_000.0)
-                .name("Other record")
+                .amount(BigDecimal.valueOf(1000))
+                .currency("RUB")
+                .status(PaymentStatus.APPROVED)
+                .note("Test note")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
                 .build();
 
         // when
@@ -86,25 +123,41 @@ class PaymentServiceTest {
 
         // then
         assertNotNull(result);
-        assertEquals(expectedPayment.getPaymentId(), result.getPaymentId());
-    }
-
-    @Test
-    void deletePayment() {
-        // given
-        when(paymentRepository.removePayment(anyLong())).thenReturn(true);
-
-        // when
-        Boolean removePayment = paymentService.removePayment(1L);
-
-        // then
-        assertNotNull(removePayment);
-        assertTrue(removePayment);
+        assertEquals(expectedPayment.getGuid(), result.getGuid());
     }
 
     private void initPayments() {
-        map.put(1L, new PaymentModel(1L, 1_000.0, "First record"));
-        map.put(2L, new PaymentModel(2L, 500.0, "Second record"));
-        map.put(3L, new PaymentModel(3L, 1_500.0, "Third record"));
+        UUID guid = UUID.randomUUID();
+        map.put(guid, Optional.of(Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(1000))
+                .currency("RUB")
+                .status(PaymentStatus.APPROVED)
+                .note("Test note 1")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build()));
+        guid = UUID.randomUUID();
+        map.put(guid, Optional.of(Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(2000))
+                .currency("USD")
+                .status(PaymentStatus.DECLINED)
+                .note("Test note 2")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build()
+        ));
+        guid = UUID.randomUUID();
+        map.put(guid, Optional.of(Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(3000))
+                .currency("EUR")
+                .status(PaymentStatus.APPROVED)
+                .note("Test note 3")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build()
+        ));
     }
 }
