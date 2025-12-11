@@ -40,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentDto> search(PaymentFilter filter) {
-        Specification<Payment> spec =
+        final Specification<Payment> spec =
                 PaymentFilterFactory.fromFilter(filter);
         return paymentRepository.findAll(spec).stream()
                 .filter(Objects::nonNull)
@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Page<PaymentDto> searchPaged(PaymentFilter filter, Pageable pageable) {
-        Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
+        final Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
         return paymentRepository.findAll(spec, pageable)
                 .map(PaymentServiceImpl::convertToDto);
     }
