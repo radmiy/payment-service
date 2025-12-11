@@ -29,6 +29,7 @@ import static com.radmiy.payment.service.app.model.PaymentStatus.APPROVED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,7 +101,7 @@ class PaymentServiceTest {
                 .map(Optional::get)
                 .filter(payment -> payment.getStatus() == APPROVED)
                 .toList();
-        when(paymentRepository.findAll(eq(spec))).thenReturn(expected);
+        when(paymentRepository.findAll(isA(spec.getClass()))).thenReturn(expected);
 
         // when
         List<PaymentDto> payments = paymentService.search(paymentFilter);
