@@ -2,11 +2,15 @@ package com.radmiy.payment.service.app.service.impl;
 
 import com.radmiy.payment.service.app.exception.PaymentNotFoundException;
 import com.radmiy.payment.service.app.model.Payment;
-import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
+import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
+import com.radmiy.payment.service.app.repository.filter.PaymentFilterFactory;
 import com.radmiy.payment.service.app.service.PaymentService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,11 +39,20 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentDto> getPaymentsByStatus(PaymentStatus status) {
-        return paymentRepository.findByStatus(status).stream()
+    public List<PaymentDto> search(PaymentFilter filter) {
+        Specification<Payment> spec =
+                PaymentFilterFactory.fromFilter(filter);
+        return paymentRepository.findAll(spec).stream()
                 .filter(Objects::nonNull)
                 .map(PaymentServiceImpl::convertToDto)
                 .toList();
+    }
+
+    @Override
+    public Page<PaymentDto> searchPaged(PaymentFilter filter, Pageable pageable) {
+        Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
+        return paymentRepository.findAll(spec, pageable)
+                .map(PaymentServiceImpl::convertToDto);
     }
 
     @Override

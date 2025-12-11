@@ -1,7 +1,9 @@
 package com.radmiy.payment.service.app.service;
 
-import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
+import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +32,16 @@ public interface PaymentService {
     /**
      * Returns all available payments.
      *
-     * @return a list of all payment DTOs
+     * @return a list of all payment DTOs by filter
      */
-    List<PaymentDto> getPaymentsByStatus(PaymentStatus status);
+    List<PaymentDto> search(PaymentFilter filter);
+
+    /**
+     * Returns all available payments.
+     *
+     * @return a list of all payment DTOs by filter
+     */
+    Page<PaymentDto> searchPaged(PaymentFilter filter, Pageable pageable);
 
     /**
      * Creates a new payment.
@@ -46,8 +55,6 @@ public interface PaymentService {
      * Removes a payment by its identifier.
      *
      * @param id the unique identifier of the payment to remove
-     * @return {@code true} if the payment was removed successfully,
-     *         {@code false} if the payment with the given id was not found
      */
     void removePayment(UUID id);
 }
