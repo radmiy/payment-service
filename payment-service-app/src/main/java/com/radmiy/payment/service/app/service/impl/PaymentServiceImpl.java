@@ -1,6 +1,7 @@
 package com.radmiy.payment.service.app.service.impl;
 
 import com.radmiy.payment.service.app.exception.PaymentNotFoundException;
+import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
@@ -21,12 +22,13 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
+    private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
 
     @Override
     public PaymentDto getPayment(UUID id) {
         return paymentRepository.findById(id)
-                .map(PaymentServiceImpl::convertToDto)
+                .map(paymentMapper::toDto)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
     }
 
@@ -34,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     public List<PaymentDto> getPayments() {
         return paymentRepository.findAll().stream()
                 .filter(Objects::nonNull)
-                .map(PaymentServiceImpl::convertToDto)
+                .map(paymentMapper::toDto)
                 .toList();
     }
 
@@ -44,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
                 PaymentFilterFactory.fromFilter(filter);
         return paymentRepository.findAll(spec).stream()
                 .filter(Objects::nonNull)
-                .map(PaymentServiceImpl::convertToDto)
+                .map(paymentMapper::toDto)
                 .toList();
     }
 
@@ -52,7 +54,7 @@ public class PaymentServiceImpl implements PaymentService {
     public Page<PaymentDto> searchPaged(PaymentFilter filter, Pageable pageable) {
         final Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
         return paymentRepository.findAll(spec, pageable)
-                .map(PaymentServiceImpl::convertToDto);
+                .map(paymentMapper::toDto);
     }
 
     @Override
@@ -61,38 +63,12 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("Payment is not valid");
         }
 
-        final Payment paymentModel = paymentRepository.save(convertToModel(paymentDto));
-        return convertToDto(paymentModel);
+        final Payment paymentModel = paymentRepository.save(paymentMapper.toEntity(paymentDto));
+        return paymentMapper.toDto(paymentModel);
     }
 
     @Override
     public void removePayment(UUID id) {
         paymentRepository.deleteById(id);
-    }
-
-    private static PaymentDto convertToDto(Payment payment) {
-        final PaymentDto dto = PaymentDto.builder()
-                .amount(payment.getAmount())
-                .currency(payment.getCurrency())
-                .status(payment.getStatus())
-                .note(payment.getNote())
-                .createdAt(payment.getCreatedAt())
-                .updatedAt(payment.getUpdatedAt())
-                .build();
-        if (payment.getGuid() != null) {
-            dto.setGuid(payment.getGuid());
-        }
-        return dto;
-    }
-
-    private static Payment convertToModel(PaymentDto payment) {
-        return Payment.builder()
-                .amount(payment.getAmount())
-                .currency(payment.getCurrency())
-                .status(payment.getStatus())
-                .note(payment.getNote())
-                .createdAt(payment.getCreatedAt())
-                .updatedAt(payment.getUpdatedAt())
-                .build();
     }
 }

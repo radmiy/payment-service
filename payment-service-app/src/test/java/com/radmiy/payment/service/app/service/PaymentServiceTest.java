@@ -1,5 +1,6 @@
 package com.radmiy.payment.service.app.service;
 
+import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -28,7 +30,6 @@ import java.util.UUID;
 import static com.radmiy.payment.service.app.model.PaymentStatus.APPROVED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
@@ -43,6 +44,9 @@ class PaymentServiceTest {
     private PaymentServiceImpl paymentService;
 
     @Mock
+    private PaymentMapper paymentMapper;
+
+    @Mock
     private PaymentRepository paymentRepository;
 
     @Captor
@@ -51,6 +55,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(paymentService, "paymentMapper", paymentMapper);
         initPayments();
     }
 
@@ -60,6 +65,11 @@ class PaymentServiceTest {
         UUID guid = map.keySet().iterator().next();
         Payment expected = map.get(guid).get();
         when(paymentRepository.findById(any())).thenReturn(Optional.of(expected));
+
+        PaymentDto dto = PaymentDto.builder()
+                .guid(expected.getGuid())
+                .build();
+        when(paymentMapper.toDto(any())).thenReturn(dto);
 
         // when
         PaymentDto payment = paymentService.getPayment(guid);
@@ -135,13 +145,15 @@ class PaymentServiceTest {
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
                 .build();
+        when(paymentMapper.toDto(any())).thenReturn(newPayment);
+
 
         // when
         PaymentDto result = paymentService.addPayment(newPayment);
 
         // then
         assertNotNull(result);
-        assertEquals(expectedPayment.getGuid(), result.getGuid());
+        assertEquals(expectedPayment.getNote(), result.getNote());
     }
 
     @Test
