@@ -4,26 +4,35 @@ import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
+import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
+import com.radmiy.payment.service.app.repository.filter.PaymentFilterFactory;
 import com.radmiy.payment.service.app.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static com.radmiy.payment.service.app.model.PaymentStatus.APPROVED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -35,6 +44,9 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Captor
+    private ArgumentCaptor<UUID> paymentUuid;
 
 
     @BeforeEach
@@ -78,15 +90,21 @@ class PaymentServiceTest {
     @Test
     void getPaymentsByStatusTest() {
         // given
+        PaymentFilter paymentFilter = PaymentFilter.builder()
+                .status(APPROVED)
+                .build();
+        Specification<Payment> spec =
+                PaymentFilterFactory.fromFilter(paymentFilter);
+
         List<Payment> expected = map.values().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(payment -> payment.getStatus() ==  PaymentStatus.APPROVED)
+                .filter(payment -> payment.getStatus() == APPROVED)
                 .toList();
-        when(paymentRepository.findAll()).thenReturn(expected);
+        when(paymentRepository.findAll(isA(spec.getClass()))).thenReturn(expected);
 
         // when
-        List<PaymentDto> payments = paymentService.getPayments();
+        List<PaymentDto> payments = paymentService.search(paymentFilter);
 
         // then
         assertNotNull(payments);
@@ -102,7 +120,7 @@ class PaymentServiceTest {
                 .guid(guid)
                 .amount(BigDecimal.valueOf(1000))
                 .currency("RUB")
-                .status(PaymentStatus.APPROVED)
+                .status(APPROVED)
                 .note("Test note")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
@@ -112,7 +130,7 @@ class PaymentServiceTest {
         PaymentDto newPayment = PaymentDto.builder()
                 .amount(BigDecimal.valueOf(1000))
                 .currency("RUB")
-                .status(PaymentStatus.APPROVED)
+                .status(APPROVED)
                 .note("Test note")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
@@ -126,13 +144,27 @@ class PaymentServiceTest {
         assertEquals(expectedPayment.getGuid(), result.getGuid());
     }
 
+    @Test
+    void deletePaymentTest() {
+        // given
+        UUID guid = map.keySet().iterator().next();
+
+        // when
+        paymentService.removePayment(guid);
+
+        // then
+        verify(paymentRepository).deleteById(paymentUuid.capture());
+        UUID actualGuid = paymentUuid.getValue();
+        assertEquals(guid, actualGuid);
+    }
+
     private void initPayments() {
         UUID guid = UUID.randomUUID();
         map.put(guid, Optional.of(Payment.builder()
                 .guid(guid)
                 .amount(BigDecimal.valueOf(1000))
                 .currency("RUB")
-                .status(PaymentStatus.APPROVED)
+                .status(APPROVED)
                 .note("Test note 1")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
@@ -153,7 +185,7 @@ class PaymentServiceTest {
                 .guid(guid)
                 .amount(BigDecimal.valueOf(3000))
                 .currency("EUR")
-                .status(PaymentStatus.APPROVED)
+                .status(APPROVED)
                 .note("Test note 3")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())

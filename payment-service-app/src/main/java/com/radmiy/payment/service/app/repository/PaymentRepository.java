@@ -1,11 +1,10 @@
 package com.radmiy.payment.service.app.repository;
 
 import com.radmiy.payment.service.app.model.Payment;
-import com.radmiy.payment.service.app.model.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -13,7 +12,6 @@ import java.util.UUID;
  * Defines low-level CRUD operations for persistence layer.
  */
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+public interface PaymentRepository extends JpaRepository<Payment, UUID>, JpaSpecificationExecutor<Payment> {
 
-    List<Payment> findByStatus(PaymentStatus status);
 }
