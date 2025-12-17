@@ -21,12 +21,4 @@ public abstract class PaymentMapperDecorator implements PaymentMapper {
         }
         return dto;
     }
-
-    @Override
-    public Payment toEntity(PaymentDto dto) {
-        final Payment payment = delegate.toEntity(dto);
-
-        return payment;
-    }
-
 }
