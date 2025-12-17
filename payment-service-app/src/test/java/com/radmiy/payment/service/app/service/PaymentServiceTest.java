@@ -1,6 +1,8 @@
 package com.radmiy.payment.service.app.service;
 
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
+import com.radmiy.payment.service.app.mapper.PaymentMapperImpl;
+import com.radmiy.payment.service.app.mapper.PaymentMapperImpl_;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
@@ -11,40 +13,61 @@ import com.radmiy.payment.service.app.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static com.radmiy.payment.service.app.model.PaymentStatus.APPROVED;
+import static com.radmiy.payment.service.app.model.PaymentStatus.NOT_SENT;
+import static com.radmiy.payment.service.app.model.PaymentStatus.PENDING;
+import static com.radmiy.payment.service.app.model.PaymentStatus.RECEIVED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.STRICT_STUBS)
 class PaymentServiceTest {
 
-    private final Map<UUID, Optional<Payment>> map = new HashMap<>();
+    @Spy
+    private final PaymentMapper delegate = new PaymentMapperImpl_();
+
+    @Spy
+    private final PaymentMapperImpl paymentMapper = new PaymentMapperImpl();
+
+    private final Map<Optional<Payment>, Optional<PaymentDto>> map = new HashMap<>();
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
-
-    @Mock
-    private PaymentMapper paymentMapper;
 
     @Mock
     private PaymentRepository paymentRepository;
@@ -55,6 +78,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(paymentMapper, "delegate", delegate);
         ReflectionTestUtils.setField(paymentService, "paymentMapper", paymentMapper);
         initPayments();
     }
@@ -62,27 +86,25 @@ class PaymentServiceTest {
     @Test
     void getPaymentTest() {
         // given
-        UUID guid = map.keySet().iterator().next();
-        Payment expected = map.get(guid).get();
+        Payment expected = map.keySet().iterator()
+                .next()
+                .get();
+        UUID guid = expected.getGuid();
+
         when(paymentRepository.findById(any())).thenReturn(Optional.of(expected));
 
-        PaymentDto dto = PaymentDto.builder()
-                .guid(expected.getGuid())
-                .build();
-        when(paymentMapper.toDto(any())).thenReturn(dto);
-
         // when
-        PaymentDto payment = paymentService.getPayment(guid);
+        PaymentDto actual = paymentService.getPayment(guid);
 
         // then
-        assertNotNull(payment);
-        assertEquals(expected.getGuid(), payment.getGuid());
+        assertNotNull(actual);
+        assertEquals(expected.getGuid(), actual.getGuid());
     }
 
     @Test
     void getAllPaymentsTest() {
         // given
-        List<Payment> expected = map.values().stream()
+        List<Payment> expected = map.keySet().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .toList();
@@ -93,34 +115,124 @@ class PaymentServiceTest {
 
         // then
         assertNotNull(payments);
-        assertEquals(3, payments.size());
+        assertEquals(5, payments.size());
 
     }
 
-    @Test
-    void getPaymentsByStatusTest() {
+    @ParameterizedTest
+    @MethodSource("statusProvider")
+    void getPaymentsFilteredByStatusTest(PaymentStatus status) {
         // given
         PaymentFilter paymentFilter = PaymentFilter.builder()
-                .status(APPROVED)
+                .status(status)
                 .build();
         Specification<Payment> spec =
                 PaymentFilterFactory.fromFilter(paymentFilter);
 
-        List<Payment> expected = map.values().stream()
+        List<Payment> expected = map.keySet().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(payment -> payment.getStatus() == APPROVED)
+                .filter(payment -> payment.getStatus() == status)
                 .toList();
         when(paymentRepository.findAll(isA(spec.getClass()))).thenReturn(expected);
 
         // when
-        List<PaymentDto> payments = paymentService.search(paymentFilter);
+        List<PaymentDto> actual = paymentService.search(paymentFilter);
 
         // then
-        assertNotNull(payments);
-        assertEquals(2, payments.size());
-
+        assertNotNull(actual);
+        assertEquals(expected.size(), actual.size());
+        assertEquals(1, actual.size());
+        assertEquals(expected.get(0).getStatus(), actual.get(0).getStatus());
+        verify(paymentRepository, times(1)).findAll(isA(spec.getClass()));
     }
+
+    static Stream<PaymentStatus> statusProvider() {
+        return Stream.of(
+                RECEIVED,
+                PENDING,
+                PaymentStatus.APPROVED,
+                PaymentStatus.DECLINED,
+                NOT_SENT
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("filterProvider")
+    void getPaymentsFilteredTest(PaymentFilter paymentFilter) {
+        // given
+        Specification<Payment> spec =
+                PaymentFilterFactory.fromFilter(paymentFilter);
+
+        List<Payment> expectedPayments = new ArrayList<>();
+        when(paymentRepository.findAll(any(spec.getClass()))).thenReturn(expectedPayments);
+
+        // when
+        List<PaymentDto> actual = paymentService.search(paymentFilter);
+
+        // then
+        assertNotNull(actual);
+        verify(paymentRepository, times(1)).findAll(any(spec.getClass()));
+    }
+
+    static Stream<PaymentFilter> filterProvider() {
+        return Stream.of(
+                PaymentFilter.builder()
+                        .currency("USD")
+                        .build(),
+                PaymentFilter.builder()
+                        .status(APPROVED)
+                        .build(),
+                PaymentFilter.builder()
+                        .maxAmount(new BigDecimal(2000))
+                        .minAmount(new BigDecimal(1000))
+                        .build(),
+                PaymentFilter.builder()
+                        .createdBefore(OffsetDateTime.of(
+                                2025, 11, 1, 13, 0, 0, 0, ZoneOffset.UTC
+                        ).toInstant())
+                        .createdAfter(OffsetDateTime.of(
+                                2025, 11, 1, 11, 0, 0, 0, ZoneOffset.UTC
+                        ).toInstant())
+                        .build()
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("filterAndPageProvider")
+    void getPaymentsFilteredTest(PaymentFilter paymentFilter, PageRequest pageRequest) {
+        // given
+        Specification<Payment> spec =
+                PaymentFilterFactory.fromFilter(paymentFilter);
+        Page page = new PageImpl(new ArrayList<PaymentDto>());
+
+        when(paymentRepository.findAll(any(spec.getClass()), any(pageRequest.getClass()))).thenReturn(page);
+
+        // when
+        Page<PaymentDto> actual = paymentService.searchPaged(paymentFilter, pageRequest);
+
+        // then
+        assertNotNull(actual);
+        verify(paymentRepository, times(1)).findAll(any(spec.getClass()), any(pageRequest.getClass()));
+    }
+
+    static Stream<Arguments> filterAndPageProvider() {
+        return Stream.of(
+                Arguments.of(
+                        PaymentFilter.builder()
+                                .currency("USD")
+                                .build(),
+                        PageRequest.of(0, 25, Sort.Direction.ASC, "status")
+                ),
+                Arguments.of(
+                        PaymentFilter.builder()
+                                .status(APPROVED)
+                                .build(),
+                        PageRequest.of(0, 25, Sort.Direction.DESC, "currency")
+                )
+        );
+    }
+
 
     @Test
     void createPaymentTest() {
@@ -145,8 +257,6 @@ class PaymentServiceTest {
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
                 .build();
-        when(paymentMapper.toDto(any())).thenReturn(newPayment);
-
 
         // when
         PaymentDto result = paymentService.addPayment(newPayment);
@@ -159,7 +269,10 @@ class PaymentServiceTest {
     @Test
     void deletePaymentTest() {
         // given
-        UUID guid = map.keySet().iterator().next();
+        UUID guid = map.keySet().iterator()
+                .next()
+                .get()
+                .getGuid();
 
         // when
         paymentService.removePayment(guid);
@@ -172,7 +285,7 @@ class PaymentServiceTest {
 
     private void initPayments() {
         UUID guid = UUID.randomUUID();
-        map.put(guid, Optional.of(Payment.builder()
+        Payment payment = Payment.builder()
                 .guid(guid)
                 .amount(BigDecimal.valueOf(1000))
                 .currency("RUB")
@@ -180,9 +293,12 @@ class PaymentServiceTest {
                 .note("Test note 1")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
-                .build()));
+                .build();
+        PaymentDto dto = paymentMapper.toDto(payment);
+        map.put(Optional.of(payment), Optional.of(dto));
+
         guid = UUID.randomUUID();
-        map.put(guid, Optional.of(Payment.builder()
+        payment = Payment.builder()
                 .guid(guid)
                 .amount(BigDecimal.valueOf(2000))
                 .currency("USD")
@@ -190,18 +306,49 @@ class PaymentServiceTest {
                 .note("Test note 2")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
-                .build()
-        ));
+                .build();
+        dto = paymentMapper.toDto(payment);
+        map.put(Optional.of(payment), Optional.of(dto));
+
         guid = UUID.randomUUID();
-        map.put(guid, Optional.of(Payment.builder()
+        payment = Payment.builder()
                 .guid(guid)
                 .amount(BigDecimal.valueOf(3000))
                 .currency("EUR")
-                .status(APPROVED)
+                .status(RECEIVED)
                 .note("Test note 3")
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
-                .build()
-        ));
+                .build();
+        dto = paymentMapper.toDto(payment);
+        map.put(Optional.of(payment), Optional.of(dto));
+
+        guid = UUID.randomUUID();
+        payment = Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(3000))
+                .currency("EUR")
+                .status(PENDING)
+                .note("Test note 3")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        dto = paymentMapper.toDto(payment);
+        map.put(Optional.of(payment), Optional.of(dto));
+
+        guid = UUID.randomUUID();
+        payment = Payment.builder()
+                .guid(guid)
+                .amount(BigDecimal.valueOf(3000))
+                .currency("EUR")
+                .status(NOT_SENT)
+                .note("Test note 3")
+                .createdAt(OffsetDateTime.of(
+                        2025, 11, 1, 12, 0, 0, 0, ZoneOffset.UTC
+                ))
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        dto = paymentMapper.toDto(payment);
+        map.put(Optional.of(payment), Optional.of(dto));
     }
 }
