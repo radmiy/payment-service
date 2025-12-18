@@ -23,4 +23,5 @@ public class PaymentDto {
     private String note;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private BigDecimal converted;
 }
