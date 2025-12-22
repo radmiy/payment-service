@@ -1,8 +1,9 @@
 package com.radmiy.payment.service.app.service.impl;
 
-import com.radmiy.payment.service.app.exception.PaymentNotFoundException;
+import com.radmiy.payment.service.app.exception.ServiceException;
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.model.Payment;
+import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import com.radmiy.payment.service.app.repository.PaymentRepository;
 import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
@@ -14,9 +15,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.radmiy.payment.service.app.exception.Error.PAYMENT_IS_NUL;
+import static com.radmiy.payment.service.app.exception.Error.PAYMENT_NOT_EXIST;
+import static com.radmiy.payment.service.app.model.PaymentStatus.NOT_SENT;
 
 @Service
 @AllArgsConstructor
@@ -26,10 +33,53 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Override
+    public PaymentDto createPayment(PaymentDto dto) {
+        if (dto == null) {
+            throw new ServiceException(PAYMENT_IS_NUL);
+        }
+
+        final Payment payment = paymentMapper.toEntity(dto);
+        payment.setGuid(UUID.randomUUID());
+        payment.setInquiryRefId(UUID.randomUUID());
+        payment.setTransactionRefId(UUID.randomUUID());
+        payment.setCreatedAt(OffsetDateTime.now());
+        payment.setUpdatedAt(OffsetDateTime.now());
+        if (payment.getAmount() == null) {
+            payment.setAmount(BigDecimal.ZERO);
+        }
+        if (payment.getCurrency() == null || payment.getCurrency().isBlank()) {
+            payment.setCurrency("USD");
+        }
+        if (payment.getStatus() == null) {
+            payment.setStatus(NOT_SENT);
+        }
+
+        return paymentMapper.toDto(paymentRepository.save(payment));
+    }
+
+    @Override
     public PaymentDto getPayment(UUID id) {
         return paymentRepository.findById(id)
                 .map(paymentMapper::toDto)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+                .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
+    }
+
+    @Override
+    public PaymentDto updatePayment(UUID id, PaymentDto dto) {
+        final Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
+        payment.setUpdatedAt(OffsetDateTime.now());
+        payment.setStatus(dto.getStatus());
+        payment.setAmount(dto.getAmount());
+        payment.setCurrency(dto.getCurrency());
+        payment.setNote(dto.getNote());
+
+        return paymentMapper.toDto(paymentRepository.save(payment));
+    }
+
+    @Override
+    public void deletePayment(UUID id) {
+        paymentRepository.deleteById(id);
     }
 
     @Override
@@ -58,17 +108,20 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentDto addPayment(PaymentDto paymentDto) {
-        if (paymentDto == null) {
-            throw new IllegalArgumentException("Payment is not valid");
-        }
-
-        final Payment paymentModel = paymentRepository.save(paymentMapper.toEntity(paymentDto));
-        return paymentMapper.toDto(paymentModel);
+    public PaymentDto updateStatus(UUID id, PaymentStatus status) {
+        final Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
+        payment.setStatus(status);
+        payment.setUpdatedAt(OffsetDateTime.now());
+        return paymentMapper.toDto(paymentRepository.save(payment));
     }
 
     @Override
-    public void removePayment(UUID id) {
-        paymentRepository.deleteById(id);
+    public PaymentDto updateNote(UUID id, String note) {
+        final Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
+        payment.setNote(note);
+        payment.setUpdatedAt(OffsetDateTime.now());
+        return paymentMapper.toDto(paymentRepository.save(payment));
     }
 }
