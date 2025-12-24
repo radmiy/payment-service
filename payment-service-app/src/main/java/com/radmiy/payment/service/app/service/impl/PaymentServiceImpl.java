@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.radmiy.payment.service.app.exception.Error.NULL_ID;
 import static com.radmiy.payment.service.app.exception.Error.PAYMENT_IS_NUL;
 import static com.radmiy.payment.service.app.exception.Error.PAYMENT_NOT_EXIST;
 import static com.radmiy.payment.service.app.model.PaymentStatus.NOT_SENT;
@@ -34,9 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto createPayment(PaymentDto dto) {
-        if (dto == null) {
-            throw new ServiceException(PAYMENT_IS_NUL);
-        }
+        checkDto(dto);
 
         final Payment payment = paymentMapper.toEntity(dto);
         payment.setGuid(UUID.randomUUID());
@@ -66,6 +65,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto updatePayment(UUID id, PaymentDto dto) {
+        checkId(id);
+        checkDto(dto);
+
         final Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
         payment.setUpdatedAt(OffsetDateTime.now());
@@ -77,8 +79,24 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentMapper.toDto(paymentRepository.save(payment));
     }
 
+    private void checkDto(PaymentDto dto) {
+        if (dto == null) {
+            throw new ServiceException(PAYMENT_IS_NUL);
+        }
+    }
+
+    private void checkId(UUID id) {
+        if (id == null) {
+            throw new ServiceException(NULL_ID);
+        } else if (!paymentRepository.existsById(id)) {
+            throw new ServiceException(PAYMENT_NOT_EXIST, id);
+        }
+    }
+
     @Override
     public void deletePayment(UUID id) {
+        checkId(id);
+
         paymentRepository.deleteById(id);
     }
 
@@ -109,6 +127,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto updateStatus(UUID id, PaymentStatus status) {
+        checkId(id);
         final Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
         payment.setStatus(status);
@@ -118,6 +137,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto updateNote(UUID id, String note) {
+        checkId(id);
         final Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(PAYMENT_NOT_EXIST, id));
         payment.setNote(note);

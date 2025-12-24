@@ -1,5 +1,6 @@
 package com.radmiy.payment.service.app.service;
 
+import com.radmiy.payment.service.app.exception.ServiceException;
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.mapper.PaymentMapperImpl;
 import com.radmiy.payment.service.app.mapper.PaymentMapperImpl_;
@@ -42,12 +43,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static com.radmiy.payment.service.app.exception.Error.PAYMENT_IS_NUL;
+import static com.radmiy.payment.service.app.exception.Error.PAYMENT_NOT_EXIST;
 import static com.radmiy.payment.service.app.model.PaymentStatus.APPROVED;
 import static com.radmiy.payment.service.app.model.PaymentStatus.NOT_SENT;
 import static com.radmiy.payment.service.app.model.PaymentStatus.PENDING;
 import static com.radmiy.payment.service.app.model.PaymentStatus.RECEIVED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
@@ -130,6 +134,7 @@ class PaymentServiceTest {
         expected.setStatus(status);
         when(paymentRepository.findById(isA(UUID.class))).thenReturn(Optional.of(expected));
         when(paymentRepository.save(isA(Payment.class))).thenReturn(expected);
+        when(paymentRepository.existsById(isA(UUID.class))).thenReturn(true);
 
         // when
         PaymentDto actual = paymentService.updateStatus(guid, status);
@@ -150,6 +155,7 @@ class PaymentServiceTest {
         expected.setNote(note);
         when(paymentRepository.findById(isA(UUID.class))).thenReturn(Optional.of(expected));
         when(paymentRepository.save(isA(Payment.class))).thenReturn(expected);
+        when(paymentRepository.existsById(isA(UUID.class))).thenReturn(true);
 
         // when
         PaymentDto actual = paymentService.updateNote(guid, note);
@@ -313,6 +319,7 @@ class PaymentServiceTest {
                 .next()
                 .get()
                 .getGuid();
+        when(paymentRepository.existsById(isA(UUID.class))).thenReturn(true);
 
         // when
         paymentService.deletePayment(guid);
@@ -321,6 +328,35 @@ class PaymentServiceTest {
         verify(paymentRepository).deleteById(paymentUuid.capture());
         UUID actualGuid = paymentUuid.getValue();
         assertEquals(guid, actualGuid);
+    }
+
+    @Test
+    void notExistPaymentErrorTest() {
+        // given
+        UUID guid = UUID.randomUUID();
+        when(paymentRepository.existsById(isA(UUID.class))).thenReturn(false);
+
+        // when
+        ServiceException actualException =
+                assertThrows(ServiceException.class, () -> paymentService.deletePayment(guid));
+
+        // then
+        assertEquals(PAYMENT_NOT_EXIST.getMessage().formatted(guid), actualException.getMessage());
+    }
+
+    @Test
+    void nullPaymentErrorTest() {
+        // given
+        UUID guid = UUID.randomUUID();
+        PaymentDto dto = null;
+        when(paymentRepository.existsById(isA(UUID.class))).thenReturn(true);
+
+        // when
+        ServiceException actualException =
+                assertThrows(ServiceException.class, () -> paymentService.updatePayment(guid, dto));
+
+        // then
+        assertEquals(PAYMENT_IS_NUL.getMessage(), actualException.getMessage());
     }
 
     private void initPayments() {
