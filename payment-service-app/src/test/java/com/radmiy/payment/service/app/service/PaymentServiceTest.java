@@ -119,6 +119,46 @@ class PaymentServiceTest {
 
     }
 
+    @Test
+    void updatePaymentStatusTest() {
+        // given
+        Payment expected = map.keySet().iterator()
+                .next()
+                .get();
+        UUID guid = expected.getGuid();
+        PaymentStatus status = NOT_SENT;
+        expected.setStatus(status);
+        when(paymentRepository.findById(isA(UUID.class))).thenReturn(Optional.of(expected));
+        when(paymentRepository.save(isA(Payment.class))).thenReturn(expected);
+
+        // when
+        PaymentDto actual = paymentService.updateStatus(guid, status);
+
+        // then
+        assertNotNull(actual);
+        assertEquals(status, actual.getStatus());
+    }
+
+    @Test
+    void updatePaymentNoteTest() {
+        // given
+        Payment expected = map.keySet().iterator()
+                .next()
+                .get();
+        UUID guid = expected.getGuid();
+        String note = "test";
+        expected.setNote(note);
+        when(paymentRepository.findById(isA(UUID.class))).thenReturn(Optional.of(expected));
+        when(paymentRepository.save(isA(Payment.class))).thenReturn(expected);
+
+        // when
+        PaymentDto actual = paymentService.updateNote(guid, note);
+
+        // then
+        assertNotNull(actual);
+        assertEquals(note, actual.getNote());
+    }
+
     @ParameterizedTest
     @MethodSource("statusProvider")
     void getPaymentsFilteredByStatusTest(PaymentStatus status) {
@@ -259,7 +299,7 @@ class PaymentServiceTest {
                 .build();
 
         // when
-        PaymentDto result = paymentService.addPayment(newPayment);
+        PaymentDto result = paymentService.createPayment(newPayment);
 
         // then
         assertNotNull(result);
@@ -275,7 +315,7 @@ class PaymentServiceTest {
                 .getGuid();
 
         // when
-        paymentService.removePayment(guid);
+        paymentService.deletePayment(guid);
 
         // then
         verify(paymentRepository).deleteById(paymentUuid.capture());

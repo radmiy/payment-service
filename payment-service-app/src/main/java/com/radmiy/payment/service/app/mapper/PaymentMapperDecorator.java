@@ -3,6 +3,7 @@ package com.radmiy.payment.service.app.mapper;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 public abstract class PaymentMapperDecorator implements PaymentMapper {
 
     @Autowired
+    @Qualifier("delegate")
     private PaymentMapper delegate;
 
     @Override
@@ -20,5 +22,10 @@ public abstract class PaymentMapperDecorator implements PaymentMapper {
             dto.setConverted(dto.getAmount().multiply(new BigDecimal(3)));
         }
         return dto;
+    }
+
+    @Override
+    public Payment toEntity(PaymentDto dto) {
+        return delegate.toEntity(dto);
     }
 }

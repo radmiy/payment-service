@@ -5,9 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -15,27 +13,13 @@ public class GlobalExceptionHandler {
     /**
      * Handles domain-specific "not found" errors.
      */
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(PaymentNotFoundException ex) {
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<ErrorResponse> handle(ServiceException ex) {
         final ErrorResponse body = new ErrorResponse(
-                NOT_FOUND.value(),
-                "Not Found",
+                1,
                 ex.getMessage()
         );
-        return ResponseEntity.status(NOT_FOUND).body(body);
-    }
-
-    /**
-     * Handles validation and client-side errors.
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
-        final ErrorResponse body = new ErrorResponse(
-                BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage()
-        );
-        return ResponseEntity.status(BAD_REQUEST).body(body);
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     /**
@@ -44,8 +28,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleOther(Exception ex) {
         final ErrorResponse body = new ErrorResponse(
-                INTERNAL_SERVER_ERROR.value(),
-                "Internal Error",
+                2,
                 ex.getMessage()
         );
         return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(body);
