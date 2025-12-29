@@ -11,22 +11,14 @@ import java.math.BigDecimal;
 public abstract class PaymentMapperDecorator implements PaymentMapper {
 
     @Autowired
-    private PaymentMapper paymentMapper;
+    private PaymentMapper delegate;
 
     @Override
     public PaymentDto toDto(Payment payment) {
-        final PaymentDto dto = paymentMapper.toDto(payment);
+        final PaymentDto dto = delegate.toDto(payment);
         if (!"RUB".equalsIgnoreCase(payment.getCurrency())) {
             dto.setConverted(dto.getAmount().multiply(new BigDecimal(3)));
         }
         return dto;
     }
-
-    @Override
-    public Payment toEntity(PaymentDto dto) {
-        final Payment payment = paymentMapper.toEntity(dto);
-
-        return payment;
-    }
-
 }
