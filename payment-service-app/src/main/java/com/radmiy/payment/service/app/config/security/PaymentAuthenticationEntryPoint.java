@@ -30,7 +30,7 @@ public class PaymentAuthenticationEntryPoint implements AuthenticationEntryPoint
     ) throws IOException, ServletException {
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(SC_UNAUTHORIZED);
-        OutputStream responseStream = response.getOutputStream();
+        final OutputStream responseStream = response.getOutputStream();
         mapper.writeValue(responseStream, errorResponse);
         responseStream.flush();
     }

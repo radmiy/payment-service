@@ -21,25 +21,19 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        final JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());
 
-        http
-                // отключаем создание HTTP-сессии
-                .csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // настраиваем security-фильтры
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/payments/**").hasRole("USER")
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .exceptionHandling(excationHandling ->
                         excationHandling.authenticationEntryPoint(paymentAuthenticationEntryPoint))
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt ->
-                                jwt.jwtAuthenticationConverter(jwtConverter))
-                );
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
 
         return http.build();
     }
