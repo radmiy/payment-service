@@ -1,0 +1,122 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.1-fill-payment-data
+      author: mentor
+      changes:
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440001" }
+              - column: { name: inquiry_ref_id, value: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d" }
+              - column: { name: amount, value: 100.50 }
+              - column: { name: currency, value: "USD" }
+              - column: { name: status, value: "APPROVED" }
+              - column: { name: transaction_ref_id, value: "f47ac10b-58cc-4372-a567-0e02b2c3d471" }
+              - column: { name: note, value: "Оплата заказа #101" }
+              - column: { name: created_at, value: "2026-01-10T10:00:00Z" }
+              - column: { name: updated_at, value: "2026-01-10T10:05:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440002" }
+              - column: { name: inquiry_ref_id, value: "b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e" }
+              - column: { name: amount, value: 50.00 }
+              - column: { name: currency, value: "EUR" }
+              - column: { name: status, value: "PENDING" }
+              - column: { name: created_at, value: "2026-01-12T09:30:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T09:30:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440003" }
+              - column: { name: inquiry_ref_id, value: "c3d4e5f6-a7b8-4c5d-0e1f-2a3b4c5d6e7f" }
+              - column: { name: amount, value: 999.99 }
+              - column: { name: currency, value: "RUB" }
+              - column: { name: status, value: "DECLINED" }
+              - column: { name: note, value: "Недостаточно средств" }
+              - column: { name: created_at, value: "2026-01-12T11:00:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T11:01:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440004" }
+              - column: { name: inquiry_ref_id, value: "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a" }
+              - column: { name: amount, value: 15.75 }
+              - column: { name: currency, value: "USD" }
+              - column: { name: status, value: "RECEIVED" }
+              - column: { name: created_at, value: "2026-01-12T12:00:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T12:00:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440005" }
+              - column: { name: inquiry_ref_id, value: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b" }
+              - column: { name: amount, value: 200.00 }
+              - column: { name: currency, value: "EUR" }
+              - column: { name: status, value: "NOT_SENT" }
+              - column: { name: transaction_ref_id, value: "a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5" }
+              - column: { name: note, value: "Возврат по запросу клиента" }
+              - column: { name: created_at, value: "2026-01-01T08:00:00Z" }
+              - column: { name: updated_at, value: "2026-01-05T15:00:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440006" }
+              - column: { name: inquiry_ref_id, value: "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c" }
+              - column: { name: amount, value: 45.00 }
+              - column: { name: currency, value: "USD" }
+              - column: { name: status, value: "APPROVED" }
+              - column: { name: transaction_ref_id, value: "b2b2b2b2-c3c3-d4d4-e5e5-f6f6f6f6f6f6" }
+              - column: { name: created_at, value: "2026-01-11T14:20:00Z" }
+              - column: { name: updated_at, value: "2026-01-11T14:21:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440007" }
+              - column: { name: inquiry_ref_id, value: "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d" }
+              - column: { name: amount, value: 120.00 }
+              - column: { name: currency, value: "GBP" }
+              - column: { name: status, value: "PENDING" }
+              - column: { name: created_at, value: "2026-01-12T12:10:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T12:10:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440008" }
+              - column: { name: inquiry_ref_id, value: "1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e" }
+              - column: { name: amount, value: 330.50 }
+              - column: { name: currency, value: "RUB" }
+              - column: { name: status, value: "APPROVED" }
+              - column: { name: transaction_ref_id, value: "c3c3c3c3-d4d4-e5e5-f6f6-a7a7a7a7a7a7" }
+              - column: { name: created_at, value: "2026-01-12T10:00:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T10:05:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440009" }
+              - column: { name: inquiry_ref_id, value: "2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f" }
+              - column: { name: amount, value: 5.00 }
+              - column: { name: currency, value: "USD" }
+              - column: { name: status, value: "DECLINED" }
+              - column: { name: note, value: "Техническая ошибка провайдера" }
+              - column: { name: created_at, value: "2026-01-12T12:20:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T12:21:00Z" }
+
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "550e8400-e29b-41d4-a716-446655440010" }
+              - column: { name: inquiry_ref_id, value: "3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a" }
+              - column: { name: amount, value: 77.77 }
+              - column: { name: currency, value: "EUR" }
+              - column: { name: status, value: "RECEIVED" }
+              - column: { name: created_at, value: "2026-01-12T12:30:00Z" }
+              - column: { name: updated_at, value: "2026-01-12T12:30:00Z" }

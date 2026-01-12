@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/payments/**").hasRole("USER")
+                        .requestMatchers("/payments/**").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(excationHandling ->
                         excationHandling.authenticationEntryPoint(paymentAuthenticationEntryPoint))
