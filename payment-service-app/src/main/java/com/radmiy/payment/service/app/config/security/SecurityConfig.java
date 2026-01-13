@@ -29,6 +29,7 @@ public class SecurityConfig {
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/payments/**").authenticated()
+                        .requestMatchers("/actuator/**").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(excationHandling ->
                         excationHandling.authenticationEntryPoint(paymentAuthenticationEntryPoint))

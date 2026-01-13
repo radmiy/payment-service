@@ -7,6 +7,7 @@ import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
 import com.radmiy.payment.service.app.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/payments")
@@ -38,6 +40,7 @@ public class PaymentController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PaymentDto> createPayment(@RequestBody PaymentDto paymentDto) {
+        log.info("Create payment {}", paymentDto);
         return ResponseEntity.ok()
                 .body(paymentService.createPayment(paymentDto));
     }
@@ -45,6 +48,7 @@ public class PaymentController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
     public ResponseEntity<PaymentDto> getPayment(@PathVariable UUID id) {
+        log.info("Get payment by id: {}", id);
         return ResponseEntity.ok()
                 .body(paymentService.getPayment(id));
     }
@@ -52,12 +56,14 @@ public class PaymentController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PaymentDto> updatePayment(@PathVariable UUID id, @RequestBody PaymentDto dto) {
+        log.info("Update payment by id: {}", id);
         return ResponseEntity.ok().body(paymentService.updatePayment(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePayment(@PathVariable UUID id) {
+        log.info("Delete payment by id: {}", id);
         paymentService.deletePayment(id);
         return ResponseEntity.noContent().build();
     }
@@ -65,6 +71,7 @@ public class PaymentController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
     public ResponseEntity<List<PaymentDto>> getAllPayments() {
+        log.info("Get all payments");
         return ResponseEntity.ok()
                 .body(paymentService.getPayments());
     }
@@ -76,8 +83,10 @@ public class PaymentController {
             @PageableDefault(page = 0, size = 25, sort = "amount", direction = DESC)
             Pageable pageable
     ) {
+        log.info("Search payment by {}", filter);
         return ResponseEntity.ok().body(paymentService.searchPaged(filter, pageable));
     }
+
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
@@ -85,6 +94,7 @@ public class PaymentController {
             @PathVariable UUID id,
             @RequestBody @Valid PaymentStatusUpdateDto dto
     ) {
+        log.info("Update payment status by id: {}", id);
         return ResponseEntity.ok().body(paymentService.updateStatus(id, dto.getStatus()));
     }
 
@@ -94,6 +104,7 @@ public class PaymentController {
             @PathVariable UUID id,
             @RequestBody @Valid PaymentNoteUpdateDto dto
     ) {
+        log.info("Update payment note by id: {}", id);
         return ResponseEntity.ok().body(paymentService.updateNote(id, dto.getNote()));
     }
 }
