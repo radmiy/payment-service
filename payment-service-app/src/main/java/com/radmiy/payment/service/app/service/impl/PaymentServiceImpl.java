@@ -1,5 +1,8 @@
 package com.radmiy.payment.service.app.service.impl;
 
+import com.radmiy.payment.service.app.async.AsyncSender;
+import com.radmiy.payment.service.app.async.XPaymentAdapterMapper;
+import com.radmiy.payment.service.app.async.XPaymentAdapterRequestMessage;
 import com.radmiy.payment.service.app.exception.ServiceException;
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.model.Payment;
@@ -10,6 +13,7 @@ import com.radmiy.payment.service.app.repository.filter.PaymentFilter;
 import com.radmiy.payment.service.app.repository.filter.PaymentFilterFactory;
 import com.radmiy.payment.service.app.service.PaymentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,12 +30,15 @@ import static com.radmiy.payment.service.app.exception.Error.PAYMENT_IS_NUL;
 import static com.radmiy.payment.service.app.exception.Error.PAYMENT_NOT_EXIST;
 import static com.radmiy.payment.service.app.model.PaymentStatus.NOT_SENT;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
+    private final XPaymentAdapterMapper xPaymentAdapterMapper;
+    private final AsyncSender<XPaymentAdapterRequestMessage> sender;
 
     @Override
     public PaymentDto createPayment(PaymentDto dto) {
@@ -53,7 +60,13 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setStatus(NOT_SENT);
         }
 
-        return paymentMapper.toDto(paymentRepository.save(payment));
+        final PaymentDto paymentDto = paymentMapper.toDto(paymentRepository.save(payment));
+        final XPaymentAdapterRequestMessage requestMessage =
+                xPaymentAdapterMapper.toXPaymentAdapterRequestMessage(payment);
+        log.info("Send request message for payment: {}", requestMessage);
+        sender.send(requestMessage);
+
+        return paymentDto;
     }
 
     @Override

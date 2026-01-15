@@ -40,7 +40,7 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   logback:
     rollingpolicy:
-      file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd_HH-mm}.%i.gz"
+      file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz"
       max-file-size: 500MB
       max-history: 20
       clean-history-on-start: false
