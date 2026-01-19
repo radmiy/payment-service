@@ -1,5 +1,6 @@
-package com.radmiy.payment.service.app.async;
+package com.radmiy.payment.service.app.mapper;
 
+import com.radmiy.payment.service.api.dto.XPaymentAdapterRequestMessage;
 import com.radmiy.payment.service.app.model.Payment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

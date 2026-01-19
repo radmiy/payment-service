@@ -1,4 +1,4 @@
-package com.radmiy.payment.service.app.async;
+package com.radmiy.payment.service.api;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -10,12 +10,14 @@ public interface Message {
 
     /**
      * Return unique id
+     *
      * @return message UUID
      */
     UUID getMessageId();
 
     /**
      * Return date and time message occurred
+     *
      * @return OffsetDateTime message occurred
      */
     OffsetDateTime getOccurredAt();

@@ -1,4 +1,4 @@
-package com.radmiy.payment.service.app.async;
+package com.radmiy.payment.service.api;
 
 public enum XPaymentAdapterStatus {
 

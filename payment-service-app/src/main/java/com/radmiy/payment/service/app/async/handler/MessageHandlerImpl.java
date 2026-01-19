@@ -1,5 +1,6 @@
-package com.radmiy.payment.service.app.async;
+package com.radmiy.payment.service.app.async.handler;
 
+import com.radmiy.payment.service.api.dto.XPaymentAdapterResponseMessage;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.service.PaymentService;
 import lombok.extern.slf4j.Slf4j;
