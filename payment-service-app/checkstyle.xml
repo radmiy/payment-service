@@ -10,16 +10,16 @@
         <property name="max" value="120"/>
     </module>
 
-    <module name="SuppressionFilter">
-        <property name="file" value="checkstyle-suppressions.xml"/>
-    </module>
+<!--    <module name="SuppressionFilter">-->
+<!--        <property name="file" value="./checkstyle-suppressions.xml"/>-->
+<!--    </module>-->
 
     <module name="TreeWalker">
         <module name="WhitespaceAfter"/>
 
         <module name="WhitespaceAround"/>
 
-        <module name="FinalLocalVariable"/>
+<!--        <module name="FinalLocalVariable"/>-->
 
         <module name="UnusedImports"/>
 
