@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY pom.xml ./
 
-RUN mvn dependency:go-offline  -B -e -X
+RUN mvn dependency:go-offline -B
 
 COPY src src
 
@@ -13,6 +13,6 @@ FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-COPY --from=builder /app/target/payment-service-app-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/x-payment-adapter-app-0.0.1-SNAPSHOT.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
