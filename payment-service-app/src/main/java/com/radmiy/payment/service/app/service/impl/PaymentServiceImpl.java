@@ -1,10 +1,10 @@
 package com.radmiy.payment.service.app.service.impl;
 
-import com.radmiy.payment.service.app.async.AsyncSender;
-import com.radmiy.payment.service.app.async.XPaymentAdapterMapper;
-import com.radmiy.payment.service.app.async.XPaymentAdapterRequestMessage;
+import com.radmiy.payment.service.api.AsyncSender;
+import com.radmiy.payment.service.api.dto.XPaymentAdapterRequestMessage;
 import com.radmiy.payment.service.app.exception.ServiceException;
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
+import com.radmiy.payment.service.app.mapper.XPaymentAdapterMapper;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
