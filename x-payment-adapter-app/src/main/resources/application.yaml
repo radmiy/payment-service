@@ -1,9 +1,9 @@
 spring:
   application:
-    name: payment-service-app
+    name: x-payment-adapter-app
 
   profiles:
-    active: db, kafka
+    active: kafka
 
   security:
     oauth2:
@@ -17,7 +17,6 @@ logging:
   level:
     com.radmiy.payment: DEBUG
     org.springframework.web: INFO
-    org.springframework.data: INFO
     org.springframework.security: INFO
   pattern:
     console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){green} [%thread] %-5level %logger{36} - %msg%n"
@@ -33,10 +32,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,liquibase,beans,metrics,env,loggers"
+        include: "health,info,beans,metrics,env,loggers"
   endpoint:
     health:
       show-details: always
 
 server:
-  port: ${SERVER_PORT:8080} #8080
+  port: ${SERVER_PORT:8088} #8088

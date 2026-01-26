@@ -1,9 +1,14 @@
 package com.radmiy.payment.service.app.service;
 
+import com.radmiy.payment.service.api.AsyncSender;
+import com.radmiy.payment.service.api.Message;
+import com.radmiy.payment.service.api.dto.XPaymentAdapterRequestMessage;
 import com.radmiy.payment.service.app.exception.ServiceException;
 import com.radmiy.payment.service.app.mapper.PaymentMapper;
 import com.radmiy.payment.service.app.mapper.PaymentMapperImpl;
 import com.radmiy.payment.service.app.mapper.PaymentMapperImpl_;
+import com.radmiy.payment.service.app.mapper.XPaymentAdapterMapper;
+import com.radmiy.payment.service.app.mapper.XPaymentAdapterMapperImpl;
 import com.radmiy.payment.service.app.model.Payment;
 import com.radmiy.payment.service.app.model.PaymentStatus;
 import com.radmiy.payment.service.app.model.dto.PaymentDto;
@@ -66,6 +71,9 @@ class PaymentServiceTest {
     private final PaymentMapper delegate = new PaymentMapperImpl_();
 
     @Spy
+    private final XPaymentAdapterMapper xPaymentAdapterMapper = new XPaymentAdapterMapperImpl();
+
+    @Spy
     private final PaymentMapperImpl paymentMapper = new PaymentMapperImpl();
 
     private final Map<Optional<Payment>, Optional<PaymentDto>> map = new HashMap<>();
@@ -76,6 +84,9 @@ class PaymentServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private AsyncSender<XPaymentAdapterRequestMessage> sender;
+
     @Captor
     private ArgumentCaptor<UUID> paymentUuid;
 
@@ -84,6 +95,7 @@ class PaymentServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(paymentMapper, "delegate", delegate);
         ReflectionTestUtils.setField(paymentService, "paymentMapper", paymentMapper);
+        ReflectionTestUtils.setField(paymentService, "xPaymentAdapterMapper", xPaymentAdapterMapper);
         initPayments();
     }
 
