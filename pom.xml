@@ -32,6 +32,9 @@
         <liquibase_version>4.32.0</liquibase_version>
         <mapstruct_version>1.6.3</mapstruct_version>
         <test.containers.version>1.21.4</test.containers.version>
+        <openapi.version>0.2.7</openapi.version>
+        <openapi.generator.version>7.15.0</openapi.generator.version>
+        <jupiter.version>5.11.0</jupiter.version>
     </properties>
 
 </project>

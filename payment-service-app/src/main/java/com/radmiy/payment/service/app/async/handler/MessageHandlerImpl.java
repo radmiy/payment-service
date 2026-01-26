@@ -21,14 +21,17 @@ public class MessageHandlerImpl implements MessageHandler<XPaymentAdapterRespons
 
     @Override
     public void handle(XPaymentAdapterResponseMessage message) {
+        final PaymentStatus status = getStatus(message);
 
-        final PaymentStatus status = switch (message.getStatus()) {
+        log.info("Update payment status to: {}", status);
+        paymentService.updateStatus(message.getPaymentGuid(), status);
+    }
+
+    private static PaymentStatus getStatus(XPaymentAdapterResponseMessage message) {
+        return switch (message.getStatus()) {
             case PROCESSING -> PaymentStatus.PENDING;
             case CANCELED -> PaymentStatus.DECLINED;
             case SUCCEEDED -> PaymentStatus.APPROVED;
         };
-
-        log.info("Update payment status to: {}", status);
-        paymentService.updateStatus(message.getPaymentGuid(), status);
     }
 }

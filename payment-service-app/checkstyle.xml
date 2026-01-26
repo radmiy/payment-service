@@ -6,6 +6,10 @@
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
 
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value=".*[\\/]generated-sources[\\/].*|.*[\\/]target[\\/].*"/>
+    </module>
+
     <module name="LineLength">
         <property name="max" value="120"/>
     </module>
