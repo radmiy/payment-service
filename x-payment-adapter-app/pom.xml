@@ -16,6 +16,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>${openapi.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -78,6 +83,18 @@
             <groupId>com.radmiy</groupId>
             <artifactId>payment-service-api</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${jupiter.version}</version> <!-- Используйте актуальную версию -->
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -142,6 +159,40 @@
                 </dependencies>
             </plugin>
 
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi.generator.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>xpayment-api.openapi.yml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <library>resttemplate</library>
+
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+
+                            <apiPackage>com.radmiy.xpayment.adapter.app.api.client</apiPackage>
+
+                            <modelPackage>com.radmiy.xpayment.adapter.app.api.model</modelPackage>
+                            <configOptions>
+                                <useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <generateModelTests>false</generateModelTests>
+                    <generateApiTests>false</generateApiTests>
+                    <configOptions>
+                        <interfaceOnly>true</interfaceOnly>
+                    </configOptions>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
