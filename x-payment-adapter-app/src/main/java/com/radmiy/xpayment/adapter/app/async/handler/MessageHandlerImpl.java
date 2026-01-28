@@ -23,7 +23,8 @@ public class MessageHandlerImpl implements MessageHandler<XPaymentAdapterRequest
     public void handle(XPaymentAdapterRequestMessage requestMessage) {
         try {
             log.info("Send payment with id:{} to x-payment-api", requestMessage.getPaymentGuid());
-            ChargeResponseDto chargeResponse = providerGateway.createCharge(apiMapper.kafkaMessageToRequestDto(requestMessage));
+            ChargeResponseDto chargeResponse =
+                    providerGateway.createCharge(apiMapper.kafkaMessageToRequestDto(requestMessage));
             XPaymentAdapterResponseMessage adapterResponse = apiMapper.responseToKafkaMessage(chargeResponse);
             log.info("Sending XPayment Adapter message: {}", adapterResponse.getMessageId());
             sender.send(adapterResponse);
