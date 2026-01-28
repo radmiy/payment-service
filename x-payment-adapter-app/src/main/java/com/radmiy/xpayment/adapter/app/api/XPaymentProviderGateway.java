@@ -1,14 +1,14 @@
 package com.radmiy.xpayment.adapter.app.api;
 
-import com.radmiy.xpayment.adapter.app.api.model.ChargeResponse;
-import com.radmiy.xpayment.adapter.app.api.model.CreateChargeRequest;
+import com.radmiy.xpayment.adapter.app.dto.ChargeResponseDto;
+import com.radmiy.xpayment.adapter.app.dto.CreateChargeRequestDto;
 import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
 public interface XPaymentProviderGateway {
 
-    ChargeResponse createCharge(CreateChargeRequest createChargeRequest) throws RestClientException;
+    ChargeResponseDto createCharge(CreateChargeRequestDto createChargeRequest) throws RestClientException;
 
-    ChargeResponse getCharge(UUID id) throws RestClientException;
+    ChargeResponseDto getCharge(UUID id) throws RestClientException;
 }
