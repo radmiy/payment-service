@@ -3,7 +3,7 @@ spring:
     name: x-payment-adapter-app
 
   profiles:
-    active: kafka, xpaymentapi
+    active: kafka, xpaymentapi, rabbitmq
 
   security:
     oauth2:

@@ -4,6 +4,9 @@ import com.radmiy.payment.service.api.AsyncSender;
 import com.radmiy.payment.service.api.dto.XPaymentAdapterRequestMessage;
 import com.radmiy.payment.service.api.dto.XPaymentAdapterResponseMessage;
 import com.radmiy.xpayment.adapter.app.api.XPaymentProviderGateway;
+import com.radmiy.xpayment.adapter.app.checkstatus.PaymentStatusCheckProducer;
+import com.radmiy.xpayment.adapter.app.checkstatus.dto.PaymentStatusCheckMessage;
+import com.radmiy.xpayment.adapter.app.checkstatus.mapper.PaymentStatusCheckMessageMapper;
 import com.radmiy.xpayment.adapter.app.dto.ChargeResponseDto;
 import com.radmiy.xpayment.adapter.app.mapper.XPaymentApiMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,8 @@ public class MessageHandlerImpl implements MessageHandler<XPaymentAdapterRequest
     private final AsyncSender<XPaymentAdapterResponseMessage> sender;
     private final XPaymentProviderGateway providerGateway;
     private final XPaymentApiMapper apiMapper;
+    private final PaymentStatusCheckProducer statusCheckProducer;
+    private final PaymentStatusCheckMessageMapper statusCheckMessageMapper;
 
     @Override
     public void handle(XPaymentAdapterRequestMessage requestMessage) {
@@ -28,6 +33,9 @@ public class MessageHandlerImpl implements MessageHandler<XPaymentAdapterRequest
             XPaymentAdapterResponseMessage adapterResponse = apiMapper.responseToKafkaMessage(chargeResponse);
             log.info("Sending XPayment Adapter message: {}", adapterResponse.getMessageId());
             sender.send(adapterResponse);
+            PaymentStatusCheckMessage statusCheckMessage = statusCheckMessageMapper.toMessage(adapterResponse);
+            log.info("Sending PaymentStatusCheck message to rabbitMQ. Message: {}", statusCheckMessage);
+            statusCheckProducer.send(statusCheckMessage);
         } catch (Exception err) {
             log.error("Error send payment with id:{}", requestMessage.getPaymentGuid());
         }

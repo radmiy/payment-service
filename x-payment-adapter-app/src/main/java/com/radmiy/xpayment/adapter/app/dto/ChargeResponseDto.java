@@ -1,5 +1,6 @@
 package com.radmiy.xpayment.adapter.app.dto;
 
+import com.radmiy.payment.service.api.XPaymentAdapterStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +24,5 @@ public class ChargeResponseDto {
     private String customer;
     private UUID order;
     private String receiptEmail;
-    private String status;
+    private XPaymentAdapterStatus status;
 }
