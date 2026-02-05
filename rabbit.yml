@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: rabbit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      securityContext:
+        fsGroup: 999
+      volumes:
+        - name: custom-plugins
+          emptyDir: {}
+        - name: rabbitmq-data
+          emptyDir: {}
+        - name: rabbit-config
+          emptyDir: {}
+      initContainers:
+        - name: download-plugin
+          image: curlimages/curl:latest
+          securityContext:
+            runAsUser: 0
+          command: ["sh", "-c"]
+          args:
+            - |
+              rm -rf /custom-plugins/* 
+              URL="https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.2.0/rabbitmq_delayed_message_exchange-4.2.0.ez"
+              echo "Starting download from $URL..."
+              curl -L $URL -o /custom-plugins/rabbitmq_delayed_message_exchange.ez
+              echo "Download complete. Setting permissions..."
+              chmod 644 /custom-plugins/rabbitmq_delayed_message_exchange.ez
+              chown 1001:1001 /custom-plugins/rabbitmq_delayed_message_exchange.ez
+              ls -la /custom-plugins/
+          volumeMounts:
+            - name: custom-plugins
+              mountPath: /custom-plugins
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.2.3-management
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 999
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: "admin"
+            - name: RABBITMQ_DEFAULT_PASS
+              value: "admin"
+            - name: RABBITMQ_PLUGINS_DIR
+              value: "/usr/lib/rabbitmq/plugins:/opt/rabbitmq/plugins:/custom-plugins"
+            - name: RABBITMQ_ENABLED_PLUGINS
+              value: "rabbitmq_management,rabbitmq_delayed_message_exchange"
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+            - name: custom-plugins
+              mountPath: /custom-plugins
+            - name: rabbit-config
+              mountPath: /etc/rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: rabbit
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
+  type: ClusterIP

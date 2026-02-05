@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service-app
+  labels:
+    app: payment-service-app
+spec:
+  replicas: 1                     # одно приложение (можно увеличить)
+  selector:
+    matchLabels:
+      app: payment-service-app
+  template:
+    metadata:
+      labels:
+        app: payment-service-app
+    spec:
+      containers:
+        - name: payment-service-app
+          image: payment-service-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.db.svc.cluster.local:5432/payment-db
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: secret
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.kafka.svc.cluster.local:9092
+            - name: APP_KAFKA_TOPIC_REQUEST
+              value: xpayment-adapter.requests
+            - name: APP_KAFKA_TOPIC_RESPONSE
+              value: xpayment-adapter.responses
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: http://keycloak.keycloak.svc.cluster.local:8080/realms/radmiy-lms
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service-app
+  labels:
+    app: payment-service-app
+spec:
+  selector:
+    app: payment-service-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+  type: NodePort

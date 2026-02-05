@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: kafka
+spec:
+  clusterIP: None # Headless service для корректной работы внутри K8s
+  selector:
+    app: kafka
+  ports:
+    - name: client
+      port: 9092
+      targetPort: 9092
+    - name: external
+      port: 9093
+      targetPort: 9093
+    - name: controller
+      port: 9094
+      targetPort: 9094
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: kafka
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: kafka
+          image: bitnamilegacy/kafka:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1001
+          ports:
+            - containerPort: 9092
+            - containerPort: 9093
+            - containerPort: 9094
+          env:
+            - name: KAFKA_ENABLE_KRAFT
+              value: "yes"
+            - name: KAFKA_CFG_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CFG_NODE_ID
+              value: "1"
+            - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+              value: "1@kafka-0.kafka.kafka.svc.cluster.local:9094"
+            # Слушатели
+            - name: KAFKA_CFG_LISTENERS
+              value: "PLAINTEXT://:9092,EXTERNAL://:9093,CONTROLLER://:9094"
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+            # Advertised Listeners: внутри пода - по имени сервиса, снаружи - localhost
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka-0.kafka.kafka.svc.cluster.local:9092,EXTERNAL://localhost:9093"
+            - name: KAFKA_CFG_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
+            # Критично для запуска 1 узла (чтобы не ждал репликации на 3)
+            - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_KRAFT_CLUSTER_ID
+              value: "f694e9f1-285e-449b-980f-90928e08d666"
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /bitnami/kafka
+      # Отключаем пробы на время первичного форматирования, чтобы не было DUPLICATE_BROKER_REGISTRATION
+#          startupProbe:
+#            tcpSocket:
+#              port: 9092
+#            initialDelaySeconds: 30
+#            failureThreshold: 20
+#            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 4Gi
+---
+# Проброс порта наружу (аналог портов в Docker Compose)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-external
+  namespace: kafka
+spec:
+  type: NodePort
+  selector:
+    app: kafka
+  ports:
+    - name: external
+      port: 9093
+      targetPort: 9093
+      nodePort: 30093 # Теперь доступно через localhost:30093

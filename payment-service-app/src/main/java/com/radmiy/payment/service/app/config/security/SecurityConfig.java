@@ -28,9 +28,9 @@ public class SecurityConfig {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/payments/**").authenticated()
-                        .requestMatchers("/actuator/**").authenticated()
-                        .anyRequest().authenticated())
+//                        .requestMatchers("/payments/**").authenticated()
+//                        .requestMatchers("/actuator/**").authenticated()
+                        .anyRequest().anonymous())
                 .exceptionHandling(excationHandling ->
                         excationHandling.authenticationEntryPoint(paymentAuthenticationEntryPoint))
                 .oauth2ResourceServer(oauth2 ->

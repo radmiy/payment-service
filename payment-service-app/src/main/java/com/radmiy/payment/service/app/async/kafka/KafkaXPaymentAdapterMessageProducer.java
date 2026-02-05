@@ -21,6 +21,11 @@ public class KafkaXPaymentAdapterMessageProducer implements AsyncSender<XPayment
         final String key = msg.getPaymentGuid().toString();
         log.info("Sending XPayment Adapter request: {} ", msg);
 
+        log.info("Template: {}", template);
+        log.info("\nKafka properties: {}", kafkaProperties);
+        log.info("\nKey: {}", key);
+        log.info("\nMsg: {}", msg);
+
         template.send(kafkaProperties.getRequestTopic(), key, msg);
     }
 }

@@ -1,0 +1,1 @@
+kubectl create configmap keycloak-realm --from-file=realm-export.json -n keycloak
