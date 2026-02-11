@@ -35,6 +35,9 @@ spec:
               value: xpayment-adapter.responses
             - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
               value: http://keycloak.keycloak.svc.cluster.local:8080/realms/radmiy-lms
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: http://zipkin.observability.svc.cluster.local:9411/api/v2/spans
+
 ---
 apiVersion: v1
 kind: Service

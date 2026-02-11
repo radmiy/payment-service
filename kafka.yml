@@ -78,13 +78,6 @@ spec:
           volumeMounts:
             - name: kafka-data
               mountPath: /bitnami/kafka
-      # Отключаем пробы на время первичного форматирования, чтобы не было DUPLICATE_BROKER_REGISTRATION
-#          startupProbe:
-#            tcpSocket:
-#              port: 9092
-#            initialDelaySeconds: 30
-#            failureThreshold: 20
-#            periodSeconds: 10
   volumeClaimTemplates:
     - metadata:
         name: kafka-data

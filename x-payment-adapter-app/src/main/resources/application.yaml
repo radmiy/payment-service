@@ -19,8 +19,8 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: INFO
   pattern:
-    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){green} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){green} [%thread] %-5level %logger{36} - [%X{traceId}:%X{spanId}] %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [%X{traceId}:%X{spanId}] %msg%n"
   logback:
     rollingpolicy:
       file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz"
@@ -36,6 +36,14 @@ management:
   endpoint:
     health:
       show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c,b3
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
 server:
   port: ${SERVER_PORT:8088} #8088
