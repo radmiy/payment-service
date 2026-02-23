@@ -31,6 +31,8 @@ spec:
               value: "amqp://rabbitmq.rabbit.svc.cluster.local:5672"
             - name: SPRING_RABBITMQ_HOST
               value: "rabbitmq.rabbit.svc.cluster.local"
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: http://zipkin.observability.svc.cluster.local:9411/api/v2/spans
 
 ---
 apiVersion: v1
