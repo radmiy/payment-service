@@ -1,0 +1,60 @@
+kraft:
+  enabled: true
+  clusterId: "custom-storage-id-001"
+
+controller:
+  replicaCount: 1
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+      enabled: false
+  startupProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 15
+broker:
+  replicaCount: 1
+
+listeners:
+  client:
+    protocol: PLAINTEXT
+    containerPort: 9092
+#  controller:
+#    protocol: PLAINTEXT
+#    containerPort: 9094
+  external:
+    protocol: PLAINTEXT
+    containerPort: 9093
+
+#externalAccess:
+#  enabled: true
+#  # Используем LoadBalancer для Docker Desktop (он сам пробросит порты на localhost)
+#  controller:
+#    service:
+#      type: LoadBalancer
+#      # Если нужно закрепить порты, можно указать их здесь:
+#      loadBalancerIPs: []
+#      # Для LoadBalancer не нужно указывать nodePorts для каждого реплики
+#  brokers:
+#    service:
+#      type: LoadBalancer
+#
+## Это добавит те самые настройки из вашего Compose
+extraConfig: |
+  auto.create.topics.enable=true
+  # Исправляем Advertised Listeners для работы через localhost
+  advertised.listeners=CLIENT://:9092,EXTERNAL://localhost:9093
+  offsets.topic.replication.factor=1
+  transaction.state.log.replication.factor=1
+  transaction.state.log.min.isr=1
+persistence:
+  enabled: true
+  size: 8Gi
+  mountPath: /bitnami/kafka
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001

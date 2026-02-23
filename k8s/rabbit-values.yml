@@ -1,0 +1,37 @@
+extraPlugins: "rabbitmq_auth_backend_cache,rabbitmq_delayed_message_exchange,rabbitmq_management"
+extraEnvVars:
+  - name: RABBITMQ_PLUGINS_DIR
+    value: "/opt/bitnami/rabbitmq/plugins:/bitnami/rabbitmq/plugins:/custom-plugins"
+initContainers:
+  - name: download-delayed-message-plugin
+    image: curlimages/curl:8.5.0
+    securityContext:
+      runAsUser: 0
+    command:
+      - "sh"
+      - "-c"
+      - |
+        rm -rf /custom-plugins/* 
+        URL="https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.1.0/rabbitmq_delayed_message_exchange-4.1.0.ez"
+        echo "Starting download from $URL..."
+        curl -L $URL -o /custom-plugins-storage/rabbitmq_delayed_message_exchange.ez
+        echo "Download complete. Setting permissions..."
+        chmod 644 /custom-plugins-storage/rabbitmq_delayed_message_exchange.ez
+        chown 1001:1001 /custom-plugins-storage/rabbitmq_delayed_message_exchange.ez
+        ls -la /custom-plugins-storage/
+    volumeMounts:
+      - name: custom-plugins-storage
+        mountPath: /custom-plugins-storage
+
+extraVolumeMounts:
+  - name: custom-plugins-storage
+    mountPath: /custom-plugins
+
+extraVolumes:
+  - name: custom-plugins-storage
+    emptyDir: {}
+
+podSecurityContext:
+  fsGroup: 1001
+containerSecurityContext:
+  runAsUser: 1001
